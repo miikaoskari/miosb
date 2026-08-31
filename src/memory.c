@@ -55,6 +55,7 @@ struct page* alloc_pages(const unsigned int order)
         {
             free_block = free_list[current_order];
             free_list[current_order] = free_block->next;
+            break;
         }
         current_order++;
     }
