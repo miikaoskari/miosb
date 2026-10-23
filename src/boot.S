@@ -34,6 +34,14 @@ _kernel:
     bl enable_fp
     /* initialize vector table */
     bl _irq_vector_init
+    /* zero out bss section */
+    ldr x0, =__bss_start
+    ldr x1, =__bss_end
+1:  cmp x0, x1
+    b.hs 2f
+    str xzr, [x0], #8
+    b 1b
+2:
     /* initialize stack pointer */
     ldr x30, =stack_top
     mov sp, x30
