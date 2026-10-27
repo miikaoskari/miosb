@@ -1,3 +1,6 @@
+#ifndef PGTABLE_H
+#define PGTABLE_H
+
 #include "miosb/bits.h"
 #include "miosb/types.h"
 #include <stdbool.h>
@@ -5,6 +8,7 @@
 #define PTE_TYPE_MASK GENMASK(1, 0)
 #define PTE_TYPE_TABLE UL(0b11)
 #define PTE_TYPE_BLOCK UL(0b01)
+#define PTE_TYPE_PAGE UL(0b11) /* level-3 page descriptor; shares its encoding with PTE_TYPE_TABLE */
 
 /* D4.3.3 Memory attribute fields in the VMSAv8-64 translation table format descriptors */
 
@@ -35,3 +39,13 @@ static inline u64 pte_block(u64 pa, unsigned attridx, bool exec)
         d |= PTE_XN_OR_UXN | PTE_PXN;
     return d;
 }
+
+static inline u64 pte_page(u64 pa, unsigned attridx, bool exec)
+{
+    u64 d = pa | PTE_TYPE_PAGE | PTE_AF | PTE_SH_INNER | PTE_ATTRINDX(attridx);
+    if (!exec)
+        d |= PTE_XN_OR_UXN | PTE_PXN;
+    return d;
+}
+
+#endif // PGTABLE_H

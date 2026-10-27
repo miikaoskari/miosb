@@ -24,6 +24,15 @@
 #define TCR_EL1_SH0_INNER 0b11
 #define TCR_EL1_RGN_WBWA 0b01 /* Normal memory, Inner Write-Back Read-Allocate Write-Allocate Cacheable */
 
+/* D10.2.82 MAIR_EL1, Memory Attribute Indirection Register (EL1) */
+#define MAIR_EL1_ATTR_DEVICE_nGnRnE UL(0x00) /* Device-nGnRnE */
+#define MAIR_EL1_ATTR_NORMAL_NC     UL(0x44) /* Normal, Inner/Outer Non-cacheable */
+#define MAIR_EL1_ATTR_NORMAL        UL(0xff) /* Normal, Inner/Outer Write-Back Non-transient, R/W-Allocate */
+#define MAIR_EL1_ATTR_MASK          UL(0xff)
+
+/* Place attr at Attr<idx> */
+#define MAIR_EL1_ATTRIDX(attr, idx) ((attr) << ((idx) * 8))
+
 /* D10.2.54 ID_AA64MMFR0_EL1, AArch64 Memory Model Feature Register 0 */
 #define ID_AA64MMFR0_EL1_PARANGE_MASK GENMASK(3, 0)
 
@@ -31,3 +40,8 @@
 #define ID_AA64MMFR0_EL1_PARANGE_64GB 0b01
 #define ID_AA64MMFR0_EL1_PARANGE_1TB 0b10
 #define ID_AA64MMFR0_EL1_PARANGE_4TB 0b11
+
+/* D10.2.111 TTBR0_EL1, Translation Table Base Register 0 (EL1) */
+#define TTBR0_EL1_ASID_MASK GENMASK(63, 48)
+#define TTBR0_EL1_BADDR_MASK GENMASK(47, 1)
+#define TTBR0_EL1_CNP BIT(0)
