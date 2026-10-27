@@ -1,0 +1,7 @@
+[wrap-git]
+url = https://github.com/dgibson/dtc.git
+revision = v1.7.2
+depth = 1
+# Replaces upstream's meson.build with one that builds only libfdt,
+# freestanding, against our libc headers.
+patch_directory = dtc

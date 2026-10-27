@@ -5,7 +5,7 @@
 #include "miosb/platform/aarch64/sysreg.h"
 #include "miosb/string.h"
 #include "miosb/types.h"
-#include <platform/aarch64/barrier.h>
+#include "miosb/platform/aarch64/barrier.h"
 #include <stdbool.h>
 
 #define GRANULE_SIZE 4096UL

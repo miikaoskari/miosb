@@ -3,3 +3,6 @@ build/
 .zig-cache/
 .idea/
 .cache/
+subprojects/*
+!subprojects/*.wrap
+!subprojects/packagefiles/

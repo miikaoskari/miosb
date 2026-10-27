@@ -1,5 +1,5 @@
 #include <libfdt.h>
-#include <platform/aarch64/barrier.h>
+#include "miosb/platform/aarch64/barrier.h"
 #include <stdint.h>
 #include "miosb/driver.h"
 #include "miosb/memory.h"
