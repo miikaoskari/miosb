@@ -25,6 +25,9 @@ void kmain(u64 dtb_ptr32, [[maybe_unused]] u64 x1, [[maybe_unused]] u64 x2, [[ma
 {
     void *fdt = (void *)(uintptr_t)dtb_ptr32;
 
+    idmap_add_region((u64)(uptr)uart, (u64)(uptr)uart + PAGE_SIZE, MT_DEVICE, false);
+    idmap_add_region(dtb_ptr32, dtb_ptr32 + fdt_totalsize(fdt), MT_NORMAL, false);
+
     init_idmap();
 
     info("fdt pointer %p", fdt);
