@@ -2,10 +2,16 @@ ENTRY(_start)
 SECTIONS {
     . = 0x40100000; /* RAM starts at 0x40000000 but if we ask to load the kernel there, QEMU will not load a DTB */
     __kernel_start = .;
-    .startup . : { *boot*.o(.text) }
+    .startup . : { *boot*(.text) }
     .text : { *(.text) }
+    .rodata : { *(.rodata*) }
     .data : { *(.data) }
-    .bss : { *(.bss COMMON) }
+    .bss ALIGN(8) : {
+        __bss_start = .;
+        *(.bss COMMON)
+        . = ALIGN(8);
+        __bss_end = .;
+    }
 
     .drivers : {
         __drivers_start = .;
@@ -18,4 +24,6 @@ SECTIONS {
     stack_top = .;
 
     __kernel_end = .;
+
+    __image_size = __kernel_end - __kernel_start;
 }
