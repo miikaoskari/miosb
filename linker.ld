@@ -6,7 +6,7 @@ SECTIONS {
     .text : { *(.text) }
     .rodata : { *(.rodata*) }
     .data : { *(.data) }
-    .bss ALIGN(8) : {
+    .bss : ALIGN(8) {
         __bss_start = .;
         *(.bss COMMON)
         . = ALIGN(8);
