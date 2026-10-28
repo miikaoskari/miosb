@@ -3,9 +3,10 @@
 #include "miosb/platform/aarch64/mmu.h"
 #include "miosb/platform/aarch64/pgtable.h"
 #include "miosb/platform/aarch64/sysreg.h"
-#include "miosb/string.h"
 #include "miosb/types.h"
 #include "miosb/platform/aarch64/barrier.h"
+
+#include <malgos/allocators/arena.h>
 #include <stdbool.h>
 
 #define GRANULE_SIZE 4096UL
@@ -39,21 +40,21 @@ extern char __kernel_end[];
  */
 #define PGTABLE_POOL_TABLES 32
 __attribute__((aligned(GRANULE_SIZE))) static u64 pgtable_pool[PGTABLE_POOL_TABLES][TABLE_ENTRIES_COUNT];
-static unsigned pgtable_pool_next = 0;
 
 static u64 *l1_table = nullptr;
+static mlg_arena_t arena;
 
 static u64 *pgtable_alloc(void)
 {
-    if (pgtable_pool_next >= PGTABLE_POOL_TABLES)
+    u64 *table = mlg_arena_alloc_zero(&arena, GRANULE_SIZE, GRANULE_SIZE);
+    if (!table)
     {
-        /* Pool exhausted this early in boot — nothing to do but stop. */
         for (;;)
+        {
             wfi();
+        }
     }
 
-    u64 *table = pgtable_pool[pgtable_pool_next++];
-    memset(table, 0, GRANULE_SIZE);
     return table;
 }
 
@@ -114,6 +115,7 @@ void idmap_add_region(u64 start, u64 end, unsigned attridx, bool exec)
 
     if (l1_table == nullptr)
     {
+        mlg_arena_init(&arena, pgtable_pool, sizeof(pgtable_pool));
         l1_table = pgtable_alloc();
     }
 
@@ -129,6 +131,13 @@ void idmap_add_region(u64 start, u64 end, unsigned attridx, bool exec)
 
 void init_idmap(void)
 {
+    if (!l1_table)
+    {
+        /* guard init function, create the first l1 table */
+        mlg_arena_init(&arena, pgtable_pool, sizeof(pgtable_pool));
+        l1_table = pgtable_alloc();
+    }
+
     idmap_add_region((uptr)__kernel_start, (uptr)__kernel_end, MT_NORMAL, true);
 
     u64 parange = read_aa64mmfr0_parange();
