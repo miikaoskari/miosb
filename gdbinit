@@ -9,6 +9,11 @@ set print demangle on
 set demangle-style gnu-v3
 set print sevenbit-strings off
 
+set auto-explore-pages no
+set show-flags on
+set show-compact-regs on
+set context-code-lines 16
+
 # Connect to QEMU GDB server
 target remote localhost:1234
 
