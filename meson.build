@@ -16,6 +16,7 @@ kernel_inc = include_directories('include')
 subdir('lib')
 
 libfdt_dep = subproject('dtc').get_variable('libfdt_dep')
+malgos_dep = dependency('malgos')
 
 subdir('src')
 
@@ -24,7 +25,7 @@ linker_script = meson.project_source_root() / 'linker.ld'
 kernel = executable('kernel', kernel_sources,
   name_suffix: 'elf',
   include_directories: kernel_inc,
-  dependencies: [libfdt_dep, libc_dep],
+  dependencies: [libfdt_dep, malgos_dep, libc_dep],
   c_args: [
     '-fno-omit-frame-pointer',
     '-Wconversion',
@@ -35,6 +36,7 @@ kernel = executable('kernel', kernel_sources,
     '-Wwrite-strings',
     '-Wmissing-prototypes',
     '-Wstrict-prototypes',
+    '-Wno-language-extension-token'
   ],
   link_args: ['-T', linker_script],
   link_depends: linker_script,

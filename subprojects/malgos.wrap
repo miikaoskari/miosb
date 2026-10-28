@@ -1,0 +1,7 @@
+[wrap-git]
+url = https://github.com/miikaoskari/malgos.git
+revision = 1db48336a135568ae3db4fc33f42a0772914540c
+depth = 1
+
+[provide]
+dependency_names = malgos
