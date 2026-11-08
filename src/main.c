@@ -27,19 +27,16 @@ void kmain(u64 dtb_ptr32, [[maybe_unused]] u64 x1, [[maybe_unused]] u64 x2, [[ma
 
     idmap_add_region((u64)(uptr)uart, (u64)(uptr)uart + PAGE_SIZE, MT_DEVICE, false);
     idmap_add_region(dtb_ptr32, dtb_ptr32 + fdt_totalsize(fdt), MT_NORMAL, false);
-
     init_idmap();
 
     info("fdt pointer %p", fdt);
+
+    probe_all_drivers_from_fdt(fdt);
 
     phys_mem_init(9, 9, 9, 9);
     info("physical memory init done");
 
     struct page *page = alloc_pages(0);
-
-    register_all_drivers();
-
-    probe_all_drivers_from_fdt(fdt);
 
 
     for(;;) {

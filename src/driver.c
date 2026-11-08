@@ -1,35 +1,35 @@
 #include "miosb/driver.h"
+#include <libfdt.h>
+#include <log.h>
 
-extern driver_t __drivers_start;
-extern driver_t __drivers_end;
+const driver_t *find_driver(void *fdt, const int node);
 
-static const struct driver_s *registered_drivers[MAX_DRIVERS];
-static int driver_count = 0;
 
-const driver_t *find_driver(const char *compatible)
+const driver_t *find_driver(void *fdt, const int node)
 {
-    for (int i = 0; i < driver_count; i++)
+    /* get the count of compatible values */
+    int n = fdt_stringlist_count(fdt, node, "compatible");
+    for (int i = 0; i < n; i++)
     {
-        if (strcmp(compatible, registered_drivers[i]->compatible) == 0)
+        const char *compatible_for = fdt_stringlist_get(fdt, node, "compatible", i, NULL);
+
+        /* does any of the drivers define any of the compatible strings within
+         * the fdt stringlist for the current device */
+        FOR_EACH_DRIVER(driver)
         {
-            return registered_drivers[i];
+            for (const char *const *compatible_driver = driver->compatible; *compatible_driver; compatible_driver++)
+            {
+                if (strcmp(compatible_for, *compatible_driver) == 0)
+                {
+                    info("registering driver %s", *compatible_driver);
+                    return driver;
+                }
+            }
         }
     }
     return NULL;
 }
 
-void register_all_drivers(void)
-{
-    for (driver_t *driver = &__drivers_start; driver < &__drivers_end; ++driver)
-    {
-        if (driver)
-        {
-            register_new_driver(driver);
-        }
-    }
-
-    return;
-}
 
 void probe_all_drivers_from_fdt(void *fdt)
 {
@@ -48,53 +48,41 @@ void probe_all_drivers_from_fdt(void *fdt)
      * non-recursive for now */
     while (node_offset >= 0)
     {
-        int len;
-        const char *compatible = fdt_getprop(fdt, node_offset, "compatible", &len);
+        const driver_t *driver = find_driver(fdt, node_offset);
 
-        if (compatible)
+        if (driver)
         {
-            const driver_t *driver = find_driver(compatible);
+            int len;
 
-            if (driver)
+            device_t device = {0};
+
+            device.name = fdt_get_name(fdt, node_offset, NULL);
+
+            const fdt32_t *reg = fdt_getprop(fdt, node_offset, "reg", &len);
+
+            if (reg && len > 0)
             {
-                device_t device = {0};
+                /* we have high 32 bits at location 0 and low 32 bits at location 1 */
 
-                device.name = fdt_get_name(fdt, node_offset, NULL);
-
-                const fdt32_t *reg = fdt_getprop(fdt, node_offset, "reg", &len);
-
-                if (reg && len > 0)
+                uint64_t addr = 0;
+                for (int i = 0; i < address_cells; i++)
                 {
-                    /* we have high 32 bits at location 0 and low 32 bits at location 1 */
-
-                    uint64_t addr = 0;
-                    for (int i = 0; i < address_cells; i++)
-                    {
-                        addr = (addr << 32) | fdt32_to_cpu(reg[i]);
-                    }
-                    // device.reg_base = addr;
-
-                    uint64_t size = 0;
-                    for (int i = 0; i < size_cells; i++)
-                    {
-                        size = (size << 32) | fdt32_to_cpu(reg[address_cells + i]);
-                    }
-                    // device.reg_size = size;
+                    addr = (addr << 32) | fdt32_to_cpu(reg[i]);
                 }
+                // device.reg_base = addr;
 
-                driver->init(&device);
+                uint64_t size = 0;
+                for (int i = 0; i < size_cells; i++)
+                {
+                    size = (size << 32) | fdt32_to_cpu(reg[address_cells + i]);
+                }
+                // device.reg_size = size;
             }
+
+            driver->init(&device);
         }
+
         node_offset = fdt_next_node(fdt, node_offset, &depth);
     }
-
 }
 
-void register_new_driver(const struct driver_s *driver)
-{
-    if (driver_count < MAX_DRIVERS)
-    {
-        registered_drivers[driver_count++] = driver;
-    }
-    return;
-}

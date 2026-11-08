@@ -20,12 +20,18 @@ typedef struct driver_s
 {
     void (*init)(struct device_s *dev);
     const char *name;
-    const char *compatible;
+    const char *const *compatible; /* must be null terminated */
 
     int (*probe)(struct device_s *dev);
 
     device_type_t type;
 } driver_t;
+
+extern driver_t __drivers_start;
+extern driver_t __drivers_end;
+
+#define FOR_EACH_DRIVER(driver) \
+    for (driver_t *(driver) = &(__drivers_start); driver < &(__drivers_end); ++driver)
 
 typedef struct device_s
 {
@@ -44,9 +50,7 @@ typedef struct device_s
 } device_t;
 
 void register_all_drivers(void);
-const driver_t *find_driver(const char *compatible);
 void probe_all_drivers_from_fdt(void *fdt);
 void register_new_driver(const driver_t *driver);
-
 
 #endif // DRIVER_H
