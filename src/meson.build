@@ -9,4 +9,5 @@ kernel_sources = files(
   'idmap.c',
   'drivers/irq/arm/gicv3/gicv3.c',
   'drivers/tty/serial/arm/pl011/pl011.c',
+  'platform/aarch64/fdt_memory.c',
 )
