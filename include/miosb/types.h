@@ -13,11 +13,10 @@ typedef uint8_t u8;
 typedef int8_t s8;
 typedef uintptr_t uptr;
 
-typedef unsigned char		uchar;
-typedef unsigned short		ushort;
-typedef unsigned int		uint;
-typedef unsigned long		ulong;
-typedef unsigned long long	ullong;
-
+typedef unsigned char uchar;
+typedef unsigned short ushort;
+typedef unsigned int uint;
+typedef unsigned long ulong;
+typedef unsigned long long ullong;
 
 #endif /* MIOSB_TYPES_H */
