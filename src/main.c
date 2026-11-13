@@ -1,5 +1,6 @@
 #include <libfdt.h>
 #include "miosb/platform/aarch64/barrier.h"
+#include <platform/aarch64/fdt_memory.h>
 #include <stdint.h>
 #include "miosb/driver.h"
 #include "miosb/memory.h"
@@ -32,6 +33,8 @@ void kmain(u64 dtb_ptr32, [[maybe_unused]] u64 x1, [[maybe_unused]] u64 x2, [[ma
     info("fdt pointer %p", fdt);
 
     probe_all_drivers_from_fdt(fdt);
+
+    fdt_find_memory_regions(fdt);
 
     phys_mem_init(9, 9, 9, 9);
     info("physical memory init done");

@@ -2,10 +2,11 @@
 #define MEMORY_REGIONS_H
 
 #include "miosb/types.h"
+#include <stddef.h>
 
 typedef struct {
-    u64 base,
-    size
+    u64 base;
+    size_t size;
 } mem_region_t;
 
 
