@@ -5,9 +5,9 @@
 #include "miosb/platform/aarch64/sysreg.h"
 #include "miosb/types.h"
 #include "miosb/platform/aarch64/barrier.h"
+#include "miosb/regions.h"
 
 #include <malgos/allocators/arena.h>
-#include <regions.h>
 #include <stdbool.h>
 
 #define GRANULE_SIZE 4096UL
