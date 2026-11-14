@@ -7,6 +7,7 @@
 #include "miosb/platform/aarch64/barrier.h"
 
 #include <malgos/allocators/arena.h>
+#include <regions.h>
 #include <stdbool.h>
 
 #define GRANULE_SIZE 4096UL
@@ -28,9 +29,6 @@
 #define ALIGN_UP(x, a) (((x) + (a) - 1) & ~((a) - 1))
 
 #define PTE_ADDR_MASK (~(u64)(GRANULE_SIZE - 1))
-
-extern char __kernel_start[];
-extern char __kernel_end[];
 
 /*
  * Single flat pool that every level of the identity map is carved out of,
@@ -138,7 +136,7 @@ void init_idmap(void)
         l1_table = pgtable_alloc();
     }
 
-    idmap_add_region((uptr)__kernel_start, (uptr)__kernel_end, MT_NORMAL, true);
+    idmap_add_region(kernel_start(), kernel_end(), MT_NORMAL, true);
 
     u64 parange = read_aa64mmfr0_parange();
 
