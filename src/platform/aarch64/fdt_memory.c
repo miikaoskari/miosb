@@ -1,14 +1,15 @@
 #include "miosb/platform/aarch64/fdt_memory.h"
+#include "miosb/regions.h"
+#include "miosb/types.h"
 #include <libfdt.h>
 
-#define MAX_MEMORY_REGIONS 16
+static void fdt_add_memory_region(void* fdt, int node, int parent, mem_region_t *out, int *count);
+static void add_reserved_memory_region(u64 start, size_t size, mem_region_t *out, int *count);
 
-void add_memory_region(void* fdt, int node, int parent, mem_region_t *out, int *count);
-
-static mem_region_t mem_regions[MAX_MEMORY_REGIONS];
-int mem_region_count;
-static mem_region_t mem_reserved_regions[MAX_MEMORY_REGIONS];
-int reserved_region_count;
+mem_region_t g_mem_regions[MAX_MEMORY_REGIONS];
+int g_mem_region_count;
+mem_region_t g_mem_reserved_regions[MAX_MEMORY_REGIONS];
+int g_mem_reserved_region_count;
 
 static u64 read_cells(const fdt32_t *reg, int cells)
 {
@@ -18,7 +19,7 @@ static u64 read_cells(const fdt32_t *reg, int cells)
     return v;
 }
 
-void add_memory_region(void* fdt, int node, int parent, mem_region_t *out, int *count)
+static void fdt_add_memory_region(void* fdt, int node, int parent, mem_region_t *out, int *count)
 {
     int size_cells = fdt_size_cells(fdt, parent);
     int address_cells = fdt_address_cells(fdt, parent);
@@ -41,8 +42,16 @@ void add_memory_region(void* fdt, int node, int parent, mem_region_t *out, int *
 
         out[*count].base = read_cells(reg + i, address_cells);
         out[*count].size = size;
+        enum mem_kind kind = MEM_USABLE;
+        out[*count].kind = kind;
         (*count)++;
     }
+}
+
+static void add_reserved_memory_region(u64 start, size_t size, mem_region_t *out, int *count)
+{
+    out[*count].base = start;
+    out[*count].size = size;
 }
 
 /* memory@40000000 {
@@ -52,7 +61,7 @@ void add_memory_region(void* fdt, int node, int parent, mem_region_t *out, int *
  * */
 void fdt_find_memory_regions(void* fdt)
 {
-    mem_region_count = 0;
+    g_mem_region_count = 0;
 
     int node = -1;
     while ((node = fdt_node_offset_by_prop_value(fdt, node, "device_type", "memory", sizeof("memory"))) >= 0) {
@@ -60,12 +69,12 @@ void fdt_find_memory_regions(void* fdt)
         if (parent < 0)
             continue;
 
-        add_memory_region(fdt, node, parent, mem_regions, &mem_region_count);
-        if (mem_region_count >= MAX_MEMORY_REGIONS)
+        fdt_add_memory_region(fdt, node, parent, g_mem_regions, &g_mem_region_count);
+        if (g_mem_region_count >= MAX_MEMORY_REGIONS)
             break;
     }
 
     /* register reserved regions e.g. devicetree, kernel code */
-
-
+    add_reserved_memory_region(kernel_start(), kernel_size(), g_mem_reserved_regions, &g_mem_reserved_region_count);
+    add_reserved_memory_region((uptr)fdt, fdt_totalsize(fdt), g_mem_reserved_regions, &g_mem_reserved_region_count);
 }
